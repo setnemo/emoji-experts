@@ -52,31 +52,34 @@ class DbRepository
     }
 
     /**
-     * @param int $id
-     * @param string|null $lang
+     * @param string $emoji
+     * @param string $codes
+     * @param string $name
+     * @param string $category
+     * @param string $subcategory
      * @return array
      */
-    private function insertNewConfig(int $id, ?string $lang): array
-    {
-        if (!$lang || $lang === 'null') {
-            $lang = 'en';
-        }
-        /** @TODO Save percent for sale-tax */
+    public function insertEmoji(
+        string $emoji,
+        string $codes,
+        string $name,
+        string $category,
+        string $subcategory
+    ): array {
         $result = [
-            $id,
-            $lang,
-            \GuzzleHttp\json_encode(['USD', 'EUR']),
-            \GuzzleHttp\json_encode([
-                'defaultCurrency' => 'usd',
-                'available_api' => [
-                    CurrencyContentStaticFactory::MONOBANK,
-                    CurrencyContentStaticFactory::PRIVAT_CARDS,
-                    CurrencyContentStaticFactory::PRIVAT_CASH,
-                ],
-                'tax' => 0,
-            ]),
+            $emoji,
+            $codes,
+            $name,
+            $category,
+            $subcategory
         ];
-        $insertStatement = $this->connection->insert(['user_id', 'lang', 'buttons', 'inline'])
+        $insertStatement = $this->connection->insert([
+            'emoji',
+            'codes',
+            'name',
+            'category',
+            'subcategory',
+        ])
             ->into('user_config')
             ->values($result);
         $insertStatement->execute(false);
