@@ -22,13 +22,18 @@ class GenericmessageCommand extends SystemCommand
             $this->getName()
         );
 
+        if ($text == 'Top players') {
+            return $this->telegram->executeCommand('Board');
+        }
+
         if ($this->isStartNewGame($text)) {
             return $this->telegram->executeCommand($text);
         }
 
-//        if ($this->isGame($text)) {
-//            return $this->telegram->executeCommand('Answer');
-//        }
+
+        if ($this->isGameYesNo($text)) {
+            return $this->telegram->executeCommand('YesNoAnswer');
+        }
 
         $conversation->stop();
         return Request::emptyResponse();
@@ -39,8 +44,8 @@ class GenericmessageCommand extends SystemCommand
         return in_array($text, ['Riddle', 'YesNo']);
     }
 
-//    private function isGame(string $text): bool
-//    {
-//        return in_array($text, ['Riddle', 'YesNo']);
-//    }
+    private function isGameYesNo(string $text): bool
+    {
+        return in_array($text, ['Yes', 'No']);
+    }
 }

@@ -4,6 +4,7 @@ namespace Longman\TelegramBot\Commands\SystemCommands;
 
 use EmojiExperts\Core\App;
 use EmojiExperts\Core\Connection;
+use EmojiExperts\Core\DbRepository;
 use EmojiExperts\Traits\Translatable;
 use Longman\TelegramBot\Commands\SystemCommand;
 use Longman\TelegramBot\DB;
@@ -15,24 +16,23 @@ use Longman\TelegramBot\Request;
 use Slim\PDO\Database;
 
 /**
- * Start command
+ * Board command
  *
- * Gets executed when a user first starts using the bot.
  */
-class StartCommand extends SystemCommand
+class BoardCommand extends SystemCommand
 {
     /**
      * @var string
      */
-    protected $name = 'start';
+    protected $name = 'board';
     /**
      * @var string
      */
-    protected $description = 'Start command';
+    protected $description = 'Board command';
     /**
      * @var string
      */
-    protected $usage = '/start';
+    protected $usage = '/board';
     /**
      * @var string
      */
@@ -53,14 +53,25 @@ class StartCommand extends SystemCommand
         $message = $this->getMessage();
         $chat_id = $message->getChat()->getId();
         /** @var User $user */
+
+        /** @var DbRepository $repo */
+        $repo = App::get('repo');
+        $text = '';
+        foreach ($repo->getLeaders() as $index => $player) {
+            $playerName = $player['username'] ? '@' . $player['username'] : 'Anonymous';
+            $score = $player['score'];
+            $place = $index + 1;
+            $text .= "{$place}. $playerName {$score} correct answers\n";
+        }
+        App::get('logger')->error('board', ['text' => $text]);
         $keyboard = new Keyboard(
             ['Top players', 'Riddle']
         );
         $keyboard->setResizeKeyboard(true);
         $data = [
             'chat_id' => $chat_id,
-            'text' => 'start text',
-            'parse_mode' => 'markdown',
+            'text' =>  $text,
+            'parse_mode' => 'html',
             'disable_web_page_preview' => true,
             'reply_markup' => $keyboard,
         ];

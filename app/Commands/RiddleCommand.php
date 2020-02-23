@@ -5,6 +5,8 @@ namespace Longman\TelegramBot\Commands\SystemCommands;
 use EmojiExperts\Core\App;
 use EmojiExperts\Core\Connection;
 use EmojiExperts\Core\DbRepository;
+use EmojiExperts\Game\YesNoGame;
+use EmojiExperts\Traits\Cacheable;
 use EmojiExperts\Traits\Translatable;
 use Longman\TelegramBot\Commands\SystemCommand;
 use Longman\TelegramBot\DB;
@@ -20,8 +22,9 @@ use Slim\PDO\Database;
  *
  * Gets executed when a user first starts using the bot.
  */
-class YesNoCommand extends SystemCommand
+class RiddleCommand extends SystemCommand
 {
+    use Cacheable;
     /**
      * @var string
      */
@@ -53,17 +56,30 @@ class YesNoCommand extends SystemCommand
     {
         $message = $this->getMessage();
         $chat_id = $message->getChat()->getId();
-        /** @var DbRepository $repo */
-        $repo = App::get('repo');
+        $userId = $message->getFrom()->getId();
 
-        $repo->getGame($message->getFrom()->getId(), DbRepository::YES_NO_GAME_MODE);
+        /** @var DbRepository $repo */
+        $repo = Connection::getRepository();
+
+        $game = $repo->startNewGame($message->getFrom()->getId(), DbRepository::YES_NO_GAME_MODE);
+        $gameId = $game['id'];
+        $em = (new YesNoGame($userId, $game['id']))->getEmojiForYesNo($userId, $gameId);
+        $this->cache()->set("game_yes_no_errors_{$userId}", 0);
+        $text = $message->getText();
+        $emoji = trim($em['emoji']);
+        $name = $em['name'];
+        $text = "{$emoji}{$emoji}{$emoji}\n\n This is `{$name}`?";
+        $buttons = ['No', 'Yes'];
+        if (mt_rand(0, 9) < 5) {
+            $buttons = ['Yes', 'No'];
+        }
         $keyboard = new Keyboard(
-            ['1', '2']
+            $buttons
         );
         $keyboard->setResizeKeyboard(true);
         $data = [
             'chat_id' => $chat_id,
-            'text' => 'yes no text',
+            'text' => $text,
             'parse_mode' => 'markdown',
             'disable_web_page_preview' => true,
             'reply_markup' => $keyboard,

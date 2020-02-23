@@ -2,7 +2,7 @@
 
 namespace EmojiExperts\Core;
 
-use EmojiExperts\Currency\Api\Factory\CurrencyContentStaticFactory;
+use Carbon\Carbon;
 use Slim\PDO\Database;
 
 class DbRepository
@@ -24,61 +24,45 @@ class DbRepository
         $this->connection = $database;
     }
 
-    /**
-     * @param int $id
-     * @param string $lang
-     */
-    public function updateLanguageCode(int $id, string $lang)
-    {
-        $updateStatement = $this->connection->update(['lang' => $lang])
-            ->table('user_config')
-            ->where('user_id', '=', $id);
-        $affectedRows = $updateStatement->execute();
-    }
-
 
     /**
-     * @param int $id
+     * @param string $category
+     * @param string $subcategory
      * @return array
      */
-    public function getEmoji(int $id): array
+    public function getEmoji(string $category, string $subcategory): array
     {
         $selectStatement = $this->connection->select([
             'emoji',
             'name',
-            'category',
-            'subcategory',
         ])
             ->from('emoji')
-            ->where('id', '=', $id);
+            ->where('category', '=', $category)
+            ->where('subcategory', '=', $subcategory)
+        ;
         $stmt = $selectStatement->execute();
         $fetch = $stmt->fetchAll();
 
-        return $fetch[0] ?? [];
+        return $fetch ?? [];
     }
 
-    public function getGame(int $id, int $mode): array
+    public function getLeaders(): array
     {
         $selectStatement = $this->connection->select([
-            'score',
+            'u.username',
+            'u.first_name',
+            'u.last_name',
+            'g.score',
+            'g.status',
         ])
-            ->from('games')
-            ->where('user_id', '=', $id)
-            ->where('status', '=', self::STATUS_IN_PROGRESS)
-            ->where('mode', '=', $mode);
-        $selectStatement;
+            ->from('games g')
+            ->join('user u', 'u.id', '=', 'g.user_id')
+            ->orderBy('g.score', 'DESC')
+            ->orderBy('g.created_at', 'DESC')
+            ->limit(20)
+        ;
         $stmt = $selectStatement->execute();
-        $fetch = $stmt->fetchAll();
-
-        $result = $fetch[0] ?? [];
-
-        App::get('logger')->error('DB', [$stmt->queryString]);
-
-        if (empty($result)) {
-            $result = $this->startNewGame($id, $mode);
-        }
-
-        return $result;
+        return $stmt->fetchAll();
     }
 
     /**
@@ -117,7 +101,25 @@ class DbRepository
         return [$result];
     }
 
-    protected function startNewGame(int $id, int $mode): array
+
+    public function getCategories()
+    {
+        $selectStatement = $this->connection->select([
+            'category', 'subcategory'
+        ])
+            ->from('emoji')
+            ->distinct()
+            ->whereNotLike('category', 'Flags')
+            ->whereNotLike('category', 'Symbols')
+        ;
+        $stmt = $selectStatement->execute();
+        $fetch = $stmt->fetchAll();
+
+        return $fetch ?? [];
+
+    }
+
+    public function startNewGame(int $id, int $mode): array
     {
         $insertStatement = $this->connection->insert([
             'user_id',
@@ -129,8 +131,37 @@ class DbRepository
                 $mode
             ]);
 
-        $insertStatement->execute(false);
+        $newId = $insertStatement->execute();
+        return ['id' => $newId, 'score' => 0];
+    }
 
-        return ['score' => 0];
+    public function updateGame(int $userId, int $id, int $score)
+    {
+        $updateStatement = $this->connection->update([
+            'score' => $score,
+            'updated_at' => Carbon::now()
+        ])
+            ->table('games')
+            ->where('user_id', '=', $userId)
+            ->where('id', '=', $id)
+        ;
+        $affectedRows = $updateStatement->execute();
+    }
+
+    public function getGameById($gameId)
+    {
+        $selectStatement = $this->connection->select([
+            'id',
+            'score',
+            'created_at',
+            'updated_at',
+        ])
+            ->from('games')
+            ->where('id', '=', $gameId)
+        ;
+        $stmt = $selectStatement->execute();
+        $fetch = $stmt->fetchAll();
+
+        return $fetch[0] ?? [];
     }
 }
