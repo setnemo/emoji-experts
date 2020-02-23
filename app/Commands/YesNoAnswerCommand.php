@@ -88,7 +88,7 @@ class YesNoAnswerCommand extends SystemCommand
 
             $emoji = trim($em['emoji']);
             $name = $em['name'];
-            $text .= "\n\n{$emoji}{$emoji}{$emoji}\n\n This is `{$name}`?";
+            $text .= "\n\n{$emoji}{$emoji}{$emoji}\n\n This is <code>{$name}</code>?";
             $buttons = ['No', 'Yes'];
             if (mt_rand(0, 9) < 5) {
                 $buttons = ['Yes', 'No'];
@@ -101,7 +101,7 @@ class YesNoAnswerCommand extends SystemCommand
         $data = [
             'chat_id' => $chat_id,
             'text' => $text,
-            'parse_mode' => 'markdown',
+            'parse_mode' => 'html',
             'disable_web_page_preview' => true,
             'reply_markup' => $keyboard,
         ];

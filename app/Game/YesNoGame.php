@@ -32,11 +32,12 @@ class YesNoGame
         $item['emoji'] = $emojies[0]['emoji'];
         $isTrue = 'Yes';
         if (mt_rand(0, 9) < 5) {
-            unset($emojies[0]);
+            $emojies[0] = null;
             $isTrue = 'No';
+            $emojies = array_filter($emojies);
             shuffle($emojies);
         }
-        $item['name'] = $emojies[0]['name'];
+        $item['name'] = $emojies[0]['name'] ?? 'emoji';
         $save = json_encode(['true' => $isTrue, 'gameId' => $gameId]);
         $this->cache()->set("game_yes_no_{$userId}", $save, 'EX', 300);
         return $item;
