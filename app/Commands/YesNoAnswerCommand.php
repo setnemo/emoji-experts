@@ -81,8 +81,8 @@ class YesNoAnswerCommand extends SystemCommand
         $errors = $this->cache()->get("game_yes_no_errors_{$userId}");
         if ($errors == 3) {
             $this->cache()->del(["game_yes_no_errors_{$userId}", "game_yes_no_{$userId}"]);
-            $buttons = ['Top players', 'Riddle'];
-            $text = "⛔️GAME OVER⛔️";
+            $buttons = ['Top results', 'Main', 'Riddle', ];
+            $text = "⛔️GAME OVER⛔️\n⛔️SCORE: {$score}⛔️";
         } else {
             $em = (new YesNoGame($userId, $gameId))->getEmojiForYesNo($userId, $gameId);
 

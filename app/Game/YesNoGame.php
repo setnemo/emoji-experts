@@ -28,7 +28,7 @@ class YesNoGame
         $choise = $categories[0];
 
         $emojies = $repo->getEmoji($choise['category'], $choise['subcategory']);
-
+        shuffle($emojies);
         $item['emoji'] = $emojies[0]['emoji'];
         $isTrue = 'Yes';
         if (mt_rand(0, 9) < 5) {

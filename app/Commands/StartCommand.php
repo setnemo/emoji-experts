@@ -54,12 +54,12 @@ class StartCommand extends SystemCommand
         $chat_id = $message->getChat()->getId();
         /** @var User $user */
         $keyboard = new Keyboard(
-            ['Top players', 'Riddle']
+            ['Top results', 'Riddle']
         );
         $keyboard->setResizeKeyboard(true);
         $data = [
             'chat_id' => $chat_id,
-            'text' => 'start text',
+            'text' => 'Hi✋ Press Riddle button to start↘️',
             'parse_mode' => 'markdown',
             'disable_web_page_preview' => true,
             'reply_markup' => $keyboard,

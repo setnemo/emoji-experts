@@ -22,7 +22,10 @@ class GenericmessageCommand extends SystemCommand
             $this->getName()
         );
 
-        if ($text == 'Top players') {
+        if ($text == 'Main') {
+            return $this->telegram->executeCommand('Start');
+        }
+        if ($text == 'Top results') {
             return $this->telegram->executeCommand('Board');
         }
 

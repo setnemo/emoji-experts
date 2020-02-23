@@ -36,7 +36,7 @@ class DbRepository
             'emoji',
             'name',
         ])
-            ->from('emoji')
+            ->from('emoji_fix')
             ->where('category', '=', $category)
             ->where('subcategory', '=', $subcategory)
         ;
@@ -94,7 +94,7 @@ class DbRepository
             'category',
             'subcategory',
         ])
-            ->into('emoji')
+            ->into('emoji_fix')
             ->values($result);
         $insertStatement->execute(false);
 
@@ -107,7 +107,7 @@ class DbRepository
         $selectStatement = $this->connection->select([
             'category', 'subcategory'
         ])
-            ->from('emoji')
+            ->from('emoji_fix')
             ->distinct()
             ->whereNotLike('category', 'Flags')
             ->whereNotLike('category', 'Symbols')

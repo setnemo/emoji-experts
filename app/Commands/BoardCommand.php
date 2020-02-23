@@ -65,7 +65,7 @@ class BoardCommand extends SystemCommand
         }
         App::get('logger')->error('board', ['text' => $text]);
         $keyboard = new Keyboard(
-            ['Top players', 'Riddle']
+            ['Top results', 'Main', 'Riddle',]
         );
         $keyboard->setResizeKeyboard(true);
         $data = [
