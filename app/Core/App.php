@@ -36,6 +36,7 @@ class App
         }
         App::bind('logger', $logger);
         App::bind('db', Connection::getInstance());
+        App::bind('repo', Connection::getRepository());
         App::bind('redis', RedisStorage::getInstance());
 
         /**

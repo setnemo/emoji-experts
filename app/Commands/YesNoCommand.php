@@ -4,6 +4,7 @@ namespace Longman\TelegramBot\Commands\SystemCommands;
 
 use EmojiExperts\Core\App;
 use EmojiExperts\Core\Connection;
+use EmojiExperts\Core\DbRepository;
 use EmojiExperts\Traits\Translatable;
 use Longman\TelegramBot\Commands\SystemCommand;
 use Longman\TelegramBot\DB;
@@ -19,20 +20,20 @@ use Slim\PDO\Database;
  *
  * Gets executed when a user first starts using the bot.
  */
-class StartCommand extends SystemCommand
+class YesNoCommand extends SystemCommand
 {
     /**
      * @var string
      */
-    protected $name = 'start';
+    protected $name = 'yesno';
     /**
      * @var string
      */
-    protected $description = 'Start command';
+    protected $description = 'YesNo command';
     /**
      * @var string
      */
-    protected $usage = '/start';
+    protected $usage = '/yesno';
     /**
      * @var string
      */
@@ -52,14 +53,17 @@ class StartCommand extends SystemCommand
     {
         $message = $this->getMessage();
         $chat_id = $message->getChat()->getId();
-        /** @var User $user */
+        /** @var DbRepository $repo */
+        $repo = App::get('repo');
+
+        $repo->getGame($message->getFrom()->getId(), DbRepository::YES_NO_GAME_MODE);
         $keyboard = new Keyboard(
-            ['Riddle', 'YesNo']
+            ['1', '2']
         );
         $keyboard->setResizeKeyboard(true);
         $data = [
             'chat_id' => $chat_id,
-            'text' => 'start text',
+            'text' => 'yes no text',
             'parse_mode' => 'markdown',
             'disable_web_page_preview' => true,
             'reply_markup' => $keyboard,

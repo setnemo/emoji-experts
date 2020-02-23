@@ -2,11 +2,8 @@
 
 namespace Longman\TelegramBot\Commands\SystemCommands;
 
-use EmojiExperts\Traits\CurrencyConvertable;
-use EmojiExperts\Traits\Translatable;
 use Longman\TelegramBot\Commands\SystemCommand;
 use Longman\TelegramBot\Conversation;
-use Longman\TelegramBot\Entities\Update;
 use Longman\TelegramBot\Request;
 
 class GenericmessageCommand extends SystemCommand
@@ -25,11 +22,25 @@ class GenericmessageCommand extends SystemCommand
             $this->getName()
         );
 
-        if ($this->isGame($text)) {
-            return $this->telegram->executeCommand('Answer');
+        if ($this->isStartNewGame($text)) {
+            return $this->telegram->executeCommand($text);
         }
+
+//        if ($this->isGame($text)) {
+//            return $this->telegram->executeCommand('Answer');
+//        }
 
         $conversation->stop();
         return Request::emptyResponse();
     }
+
+    private function isStartNewGame(string $text): bool
+    {
+        return in_array($text, ['Riddle', 'YesNo']);
+    }
+
+//    private function isGame(string $text): bool
+//    {
+//        return in_array($text, ['Riddle', 'YesNo']);
+//    }
 }

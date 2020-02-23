@@ -7,6 +7,13 @@ use Slim\PDO\Database;
 
 class DbRepository
 {
+    const YES_NO_GAME_MODE = 0;
+
+    const RIDDLE_GAME_MODE = 1;
+
+    const STATUS_GAME_OVER = 0;
+
+    const STATUS_IN_PROGRESS = 1;
     /**
      * @var Database
      */
@@ -19,28 +26,6 @@ class DbRepository
 
     /**
      * @param int $id
-     * @param string|null $lang
-     * @return array
-     */
-    public function getConfigByIdOrCreate(int $id, ?string $lang): array
-    {
-        $selectStatement = $this->connection->select([
-            'user_id', 'lang', 'buttons', 'inline'
-        ])
-            ->from('user_config')
-            ->where('user_id', '=', $id);
-        $stmt = $selectStatement->execute();
-        $result = $stmt->fetchAll();
-
-        if (0 === $stmt->rowCount()) {
-            $result = $this->insertNewConfig($id, $lang);
-        }
-
-        return $result[0];
-    }
-
-    /**
-     * @param int $id
      * @param string $lang
      */
     public function updateLanguageCode(int $id, string $lang)
@@ -49,6 +34,51 @@ class DbRepository
             ->table('user_config')
             ->where('user_id', '=', $id);
         $affectedRows = $updateStatement->execute();
+    }
+
+
+    /**
+     * @param int $id
+     * @return array
+     */
+    public function getEmoji(int $id): array
+    {
+        $selectStatement = $this->connection->select([
+            'emoji',
+            'name',
+            'category',
+            'subcategory',
+        ])
+            ->from('emoji')
+            ->where('id', '=', $id);
+        $stmt = $selectStatement->execute();
+        $fetch = $stmt->fetchAll();
+
+        return $fetch[0] ?? [];
+    }
+
+    public function getGame(int $id, int $mode): array
+    {
+        $selectStatement = $this->connection->select([
+            'score',
+        ])
+            ->from('games')
+            ->where('user_id', '=', $id)
+            ->where('status', '=', self::STATUS_IN_PROGRESS)
+            ->where('mode', '=', $mode);
+        $selectStatement;
+        $stmt = $selectStatement->execute();
+        $fetch = $stmt->fetchAll();
+
+        $result = $fetch[0] ?? [];
+
+        App::get('logger')->error('DB', [$stmt->queryString]);
+
+        if (empty($result)) {
+            $result = $this->startNewGame($id, $mode);
+        }
+
+        return $result;
     }
 
     /**
@@ -80,32 +110,27 @@ class DbRepository
             'category',
             'subcategory',
         ])
-            ->into('user_config')
+            ->into('emoji')
             ->values($result);
         $insertStatement->execute(false);
 
         return [$result];
     }
 
-    /**
-     * @param int $id
-     * @param array $apis
-     */
-    public function updateApiFromConfig(int $id, array $apis)
+    protected function startNewGame(int $id, int $mode): array
     {
-        $selectStatement = $this->connection->select(['inline'])
-            ->from('user_config')
-            ->where('user_id', '=', $id);
-        $stmt = $selectStatement->execute();
-        $fetch = $stmt->fetchAll();
+        $insertStatement = $this->connection->insert([
+            'user_id',
+            'mode',
+        ])
+            ->into('games')
+            ->values([
+                $id,
+                $mode
+            ]);
 
-        $result = $fetch[0] ?? [];
-        $newDataString = $result['inline'] ?? '{}';
-        $newData = json_decode($newDataString, true);
-        $newData['available_api'] = $apis;
-        $updateStatement = $this->connection->update(['inline' => \GuzzleHttp\json_encode($newData)])
-            ->table('user_config')
-            ->where('user_id', '=', $id);
-        $affectedRows = $updateStatement->execute();
+        $insertStatement->execute(false);
+
+        return ['score' => 0];
     }
 }
