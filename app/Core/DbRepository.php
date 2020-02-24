@@ -52,13 +52,14 @@ class DbRepository
             'u.username',
             'u.first_name',
             'u.last_name',
-            'g.score',
+            'MAX(g.score) as score',
             'g.status',
         ])
             ->from('games g')
             ->join('user u', 'u.id', '=', 'g.user_id')
-            ->orderBy('g.score', 'DESC')
+            ->orderBy('score', 'DESC')
             ->orderBy('g.created_at', 'DESC')
+            ->groupBy('u.id')
             ->limit(20)
         ;
         $stmt = $selectStatement->execute();

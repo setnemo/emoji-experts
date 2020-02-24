@@ -58,7 +58,7 @@ class BoardCommand extends SystemCommand
         $repo = App::get('repo');
         $text = '';
         foreach ($repo->getLeaders() as $index => $player) {
-            $playerName = $player['username'] ? '@' . $player['username'] : 'Anonymous';
+            $playerName = $player['username'] ? '@' . $player['username'] : $player['first_name'] . ' ' . $player['last_name'];
             $score = $player['score'];
             $place = $index + 1;
             $text .= "{$place}. $playerName {$score} correct answers\n";
