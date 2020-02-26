@@ -73,9 +73,14 @@ class YesNoAnswerCommand extends SystemCommand
             ++$score;
             $text = "✅ Awesome! You guessed!✅\nYou score: $score";
             $repo->updateGame($userId, $gameId, $score);
-        } else {
+        } elseif ("Don't know" === $input) {
+            // skip
+            $thatWas = $true['true'] == 'Yes' ? 'true' : 'not true';
+            $text = "That was <code>{$thatWas}</code>\nYou score: {$score}";
+        }
+        else {
             $this->cache()->incr("game_yes_no_errors_{$userId}");
-            $text = "❌ Incorrect!❌\nYou score: {$score} ";
+            $text = "❌ Incorrect!❌\nYou score: {$score}";
         }
 
         $errors = $this->cache()->get("game_yes_no_errors_{$userId}");
@@ -88,10 +93,10 @@ class YesNoAnswerCommand extends SystemCommand
 
             $emoji = trim($em['emoji']);
             $name = $em['name'];
-            $text .= "\n\n{$emoji}{$emoji}{$emoji}\n\n This is <code>{$name}</code>?";
-            $buttons = ['No', 'Yes'];
+            $text .= "\n\n{$emoji}{$emoji}{$emoji}\n\n Does this emoji mean <code>{$name}</code>?";
+            $buttons = ['No', "Don't know", 'Yes'];
             if (mt_rand(0, 9) < 5) {
-                $buttons = ['Yes', 'No'];
+                $buttons = ['Yes', "Don't know", 'No'];
             }
         }
         $keyboard = new Keyboard(

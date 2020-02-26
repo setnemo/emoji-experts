@@ -65,14 +65,10 @@ class RiddleCommand extends SystemCommand
         $gameId = $game['id'];
         $em = (new YesNoGame($userId, $game['id']))->getEmojiForYesNo($userId, $gameId);
         $this->cache()->set("game_yes_no_errors_{$userId}", 0);
-        $text = $message->getText();
         $emoji = trim($em['emoji']);
         $name = $em['name'];
-        $text = "{$emoji}{$emoji}{$emoji}\n\n This is `{$name}`?";
-        $buttons = ['No', 'Yes'];
-        if (mt_rand(0, 9) < 5) {
-            $buttons = ['Yes', 'No'];
-        }
+        $text = "{$emoji}{$emoji}{$emoji}\n\n Does this emoji mean <code>{$name}</code>?";
+        $buttons = ['No', "Don't know", 'Yes'];
         $keyboard = new Keyboard(
             $buttons
         );
@@ -80,7 +76,7 @@ class RiddleCommand extends SystemCommand
         $data = [
             'chat_id' => $chat_id,
             'text' => $text,
-            'parse_mode' => 'markdown',
+            'parse_mode' => 'html',
             'disable_web_page_preview' => true,
             'reply_markup' => $keyboard,
         ];
