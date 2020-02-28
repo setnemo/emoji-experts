@@ -61,47 +61,50 @@ class YesNoAnswerCommand extends SystemCommand
         $repo = App::get('repo');
 
         $true = json_decode($this->cache()->get("game_yes_no_{$userId}"), true);
-        if ($true === null) {
-            return $this->telegram->executeCommand('Riddle');
-        }
-        $gameId = $true['gameId'];
-        $game = $repo->getGameById($gameId);
+        if ($true !== null) {
+            $gameId = $true['gameId'];
+            $game = $repo->getGameById($gameId);
 
-        $input = $message->getText();
-        $score = intval($game['score']);
-        if ($true['true'] == $input) {
-            ++$score;
-            $text = "✅ Awesome! You guessed!✅\nYou score: $score";
-            $repo->updateGame($userId, $gameId, $score);
-        } elseif ("Don't know" === $input) {
-            // skip
-            $thatWas = $true['true'] == 'Yes' ? 'true' : 'not true';
-            $text = "That was <code>{$thatWas}</code>\nYou score: {$score}";
-        }
-        else {
-            $this->cache()->incr("game_yes_no_errors_{$userId}");
-            $text = "❌ Incorrect!❌\nYou score: {$score}";
-        }
-
-        $errors = $this->cache()->get("game_yes_no_errors_{$userId}");
-        if ($errors == 3) {
-            $this->cache()->del(["game_yes_no_errors_{$userId}", "game_yes_no_{$userId}"]);
-            $buttons = ['Top results', 'Main', 'Riddle', ];
-            $text = "⛔️GAME OVER⛔️\n⛔️SCORE: {$score}⛔️";
-        } else {
-            $em = (new YesNoGame($userId, $gameId))->getEmojiForYesNo($userId, $gameId);
-
-            $emoji = trim($em['emoji']);
-            $name = $em['name'];
-            $text .= "\n\n{$emoji}{$emoji}{$emoji}\n\n Does this emoji mean <code>{$name}</code>?";
-            $buttons = ['No', "Don't know", 'Yes'];
-            if (mt_rand(0, 9) < 5) {
-                $buttons = ['Yes', "Don't know", 'No'];
+            $input = $message->getText();
+            $score = intval($game['score']);
+            if ($true['true'] == $input) {
+                ++$score;
+                $text = "✅ Awesome! You guessed!✅\nYou score: $score";
+                $repo->updateGame($userId, $gameId, $score);
+            } elseif ("Don't know" === $input) {
+                // skip
+                $thatWas = $true['true'] == 'Yes' ? 'true' : 'not true';
+                $text = "That was <code>{$thatWas}</code>\nYou score: {$score}";
+            } else {
+                $this->cache()->incr("game_yes_no_errors_{$userId}");
+                $text = "❌ Incorrect!❌\nYou score: {$score}";
             }
+
+            $errors = $this->cache()->get("game_yes_no_errors_{$userId}");
+            if ($errors == 3) {
+                $this->cache()->del(["game_yes_no_errors_{$userId}", "game_yes_no_{$userId}"]);
+                $buttonsGame = ['Top results', 'Main', 'Riddle',];
+                $text = "⛔️GAME OVER⛔️\n⛔️SCORE: {$score}⛔️";
+            } else {
+                $em = (new YesNoGame($userId, $gameId))->getEmojiForYesNo($userId, $gameId);
+
+                $emoji = trim($em['emoji']);
+                $name = $em['name'];
+                $text .= "\n\n{$emoji}{$emoji}{$emoji}\n\n Does this emoji mean <code>{$name}</code>?";
+                $buttonsGame = ['No', "Don't know", 'Yes'];
+                if (mt_rand(0, 9) < 5) {
+                    $buttonsGame = ['Yes', "Don't know", 'No'];
+                }
+            }
+            $buttons = ['Top results', 'Stop'];
+            $keyboard = new Keyboard(
+                $buttons,
+                $buttonsGame
+            );
+        } else {
+            $text = 'Sorry, game not found in cache. Press <code>Riddle</code> button to start new game↘';
+            $keyboard = new Keyboard(['Top results', 'Main', 'Riddle']);
         }
-        $keyboard = new Keyboard(
-            $buttons
-        );
         $keyboard->setResizeKeyboard(true);
         $data = [
             'chat_id' => $chat_id,

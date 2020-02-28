@@ -5,6 +5,7 @@ namespace Longman\TelegramBot\Commands\SystemCommands;
 use EmojiExperts\Core\App;
 use EmojiExperts\Core\Connection;
 use EmojiExperts\Core\DbRepository;
+use EmojiExperts\Game\YesNoGame;
 use EmojiExperts\Traits\Cacheable;
 use EmojiExperts\Traits\Translatable;
 use Longman\TelegramBot\Commands\SystemCommand;
@@ -17,24 +18,25 @@ use Longman\TelegramBot\Request;
 use Slim\PDO\Database;
 
 /**
- * Board command
+ * Start command
  *
+ * Gets executed when a user first starts using the bot.
  */
-class BoardCommand extends SystemCommand
+class StopCommand extends SystemCommand
 {
     use Cacheable;
     /**
      * @var string
      */
-    protected $name = 'board';
+    protected $name = 'stopgame';
     /**
      * @var string
      */
-    protected $description = 'Board command';
+    protected $description = 'YesNo Answer command';
     /**
      * @var string
      */
-    protected $usage = '/board';
+    protected $usage = '/stopgame';
     /**
      * @var string
      */
@@ -55,33 +57,27 @@ class BoardCommand extends SystemCommand
         $message = $this->getMessage();
         $chat_id = $message->getChat()->getId();
         $userId = $message->getFrom()->getId();
-
         /** @var DbRepository $repo */
         $repo = App::get('repo');
-        $text = '';
-        foreach ($repo->getLeaders() as $index => $player) {
-            $playerName = $player['username'] ? '@' . $player['username'] : $player['first_name'] . ' ' . $player['last_name'];
-            $score = $player['score'];
-            $place = $index + 1;
-            $text .= "{$place}. $playerName {$score} correct answers\n";
-        }
 
         $true = json_decode($this->cache()->get("game_yes_no_{$userId}"), true);
-        $buttons = ['Top results', 'Main', 'Riddle',];
-
-        $keyboard = new Keyboard(
-            $buttons
-        );
-
         if ($true !== null) {
-            $keyboard = new Keyboard(
-                ['Top results', 'Stop'], ['No', "Don't know", 'Yes']
-            );
+            $gameId = $true['gameId'];
+            $game = $repo->getGameById($gameId);
+
+            $score = intval($game['score']);
+            $this->cache()->del(["game_yes_no_errors_{$userId}", "game_yes_no_{$userId}"]);
         }
+        $score = $score ?? 0;
+        $text = "✅ Awesome! Game stopped!\nYou score: $score\nPress Riddle button to start new game↘";
+        $buttonsGame = ['Top results', 'Main', 'Riddle',];
+        $keyboard = new Keyboard(
+            $buttonsGame
+        );
         $keyboard->setResizeKeyboard(true);
         $data = [
             'chat_id' => $chat_id,
-            'text' =>  $text,
+            'text' => $text,
             'parse_mode' => 'html',
             'disable_web_page_preview' => true,
             'reply_markup' => $keyboard,

@@ -44,7 +44,7 @@ class GenericmessageCommand extends SystemCommand
 
     private function isStartNewGame(string $text): bool
     {
-        return in_array($text, ['Riddle', 'YesNo']);
+        return in_array($text, ['Riddle', 'Stop']);
     }
 
     private function isGameYesNo(string $text): bool
