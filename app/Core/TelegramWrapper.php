@@ -84,6 +84,7 @@ class TelegramWrapper
                 }
             } else {
                 $this->bot->deleteWebhook();
+                $this->cache()->del([$key]);
             }
         }
     }

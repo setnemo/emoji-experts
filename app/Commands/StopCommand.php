@@ -66,7 +66,8 @@ class StopCommand extends SystemCommand
             $game = $repo->getGameById($gameId);
 
             $score = intval($game['score']);
-            $this->cache()->del(["game_yes_no_errors_{$userId}", "game_yes_no_{$userId}"]);
+            $this->cache()->del(["game_yes_no_errors_{$userId}"]);
+            $this->cache()->del(["game_yes_no_{$userId}"]);
         }
         $score = $score ?? 0;
         $text = "✅ Awesome! Game stopped!\nYou score: $score\nPress Riddle button to start new game↘";

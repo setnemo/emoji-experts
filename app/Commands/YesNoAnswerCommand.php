@@ -82,7 +82,8 @@ class YesNoAnswerCommand extends SystemCommand
 
             $errors = $this->cache()->get("game_yes_no_errors_{$userId}");
             if ($errors == 3) {
-                $this->cache()->del(["game_yes_no_errors_{$userId}", "game_yes_no_{$userId}"]);
+                $this->cache()->del(["game_yes_no_errors_{$userId}"]);
+                $this->cache()->del(["game_yes_no_{$userId}"]);
                 $buttonsGame = ['Top results', 'Main', 'Riddle',];
                 $text = "⛔️GAME OVER⛔️\n⛔️SCORE: {$score}⛔️";
             } else {
