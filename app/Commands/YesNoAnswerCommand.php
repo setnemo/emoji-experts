@@ -70,7 +70,7 @@ class YesNoAnswerCommand extends SystemCommand
             if ($true['true'] == $input) {
                 ++$score;
                 $text = "✅ Awesome! You guessed!✅\nYou score: $score";
-                $repo->updateGame($userId, $gameId, $score);
+                $repo->updateGame($userId, $gameId, $score, DbRepository::YES_NO_GAME_MODE);
             } elseif ("Don't know" === $input) {
                 // skip
                 $thatWas = $true['true'] == 'Yes' ? 'true' : 'not true';

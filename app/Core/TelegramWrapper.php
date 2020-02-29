@@ -40,13 +40,13 @@ class TelegramWrapper
     }
 
     /**
+     * @param bool $cli
      * @throws TelegramException
-     * @throws Exception
      */
-    public function init(): void
+    public function init(bool $cli = false): void
     {
         $this->bot = new Telegram($this->token, $this->botName);
-        $this->register($this->botName);
+        $this->register($this->botName, $cli);
         TelegramLog::initialize($this->logger);
         $this->bot->enableAdmin(intval(getenv('ADMIN')));
         $this->bot->addCommandsPaths([
@@ -55,25 +55,35 @@ class TelegramWrapper
 
         $this->bot->enableExternalMySql(App::get('db'));
         $this->bot->enableLimiter();
-        $this->bot->handle();
+        if ($cli) {
+            $this->bot->handleGetUpdates();
+        } else {
+            $this->bot->handle();
+        }
+
     }
 
     /**
      * @param string $prefix
+     * @param bool $cli
      * @throws Exception
      */
-    private function register(string $prefix): void
+    private function register(string $prefix, bool $cli = false): void
     {
         $key = $prefix . '_registered';
         if (!$this->cache()->exists($key)) {
-            try {
-                $hook_url = "https://" . $_SERVER["SERVER_NAME"] . $_SERVER["REQUEST_URI"];
-                $result = $this->bot->setWebhook($hook_url);
-                if ($result->isOk()) {
-                    $this->cache()->set($key, $result->getDescription());
+            if (!$cli) {
+                try {
+                    $hook_url = "https://" . $_SERVER["SERVER_NAME"] . $_SERVER["REQUEST_URI"];
+                    $result = $this->bot->setWebhook($hook_url);
+                    if ($result->isOk()) {
+                        $this->cache()->set($key, $result->getDescription());
+                    }
+                } catch (TelegramException $e) {
+                    $this->logger()->error('Registered failed', ['error' => $e->getMessage()]);
                 }
-            } catch (TelegramException $e) {
-                $this->logger()->error('Registered failed', ['error' => $e->getMessage()]);
+            } else {
+                $this->bot->deleteWebhook();
             }
         }
     }

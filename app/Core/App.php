@@ -15,8 +15,9 @@ class App
 
     /**
      * @param string $projectPath
+     * @param bool $cli
      */
-    public static function run(string $projectPath): void
+    public static function run(string $projectPath, bool $cli = false): void
     {
         /**
          * Init Core
@@ -43,7 +44,7 @@ class App
          * Init Telegram
          */
         try {
-            (new TelegramWrapper($projectPath, $token, $botName, $logger))->init();
+            (new TelegramWrapper($projectPath, $token, $botName, $logger))->init($cli);
         } catch (TelegramException $e) {
             // Log telegram errors
             TelegramLog::error($e);
