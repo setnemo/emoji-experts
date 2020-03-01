@@ -64,7 +64,7 @@ class RiddleCommand extends SystemCommand
         $game = $repo->startNewGame($message->getFrom()->getId(), DbRepository::YES_NO_GAME_MODE);
         $gameId = $game['id'];
         $em = (new YesNoGame($userId, $game['id']))->getEmojiForYesNo($userId, $gameId);
-        $this->cache()->set("game_yes_no_errors_{$userId}", 0);
+        $this->cache()->set("game_yes_no_errors_{$userId}", 0, 'EX', 300);
         $emoji = trim($em['emoji']);
         $name = $em['name'];
         $text = "{$emoji}{$emoji}{$emoji}\n\n Does this emoji mean <code>{$name}</code>?";
