@@ -85,6 +85,9 @@ class YesNoAnswerCommand extends SystemCommand
                 $this->clearCache($userId);
                 $buttonsGame = ['Top results', 'Main', 'Riddle',];
                 $text = "⛔️GAME OVER⛔️\n⛔️SCORE: {$score}⛔️";
+                $keyboard = new Keyboard(
+                    $buttonsGame
+                );
             } else {
                 $em = (new YesNoGame($userId, $gameId))->getEmojiForYesNo($userId, $gameId);
 
@@ -95,12 +98,12 @@ class YesNoAnswerCommand extends SystemCommand
                 if (mt_rand(0, 9) < 5) {
                     $buttonsGame = ['Yes', "Don't know", 'No'];
                 }
+                $buttons = ['Top results', 'Stop'];
+                $keyboard = new Keyboard(
+                    $buttons,
+                    $buttonsGame
+                );
             }
-            $buttons = ['Top results', 'Stop'];
-            $keyboard = new Keyboard(
-                $buttons,
-                $buttonsGame
-            );
         } else {
             $this->clearCache($userId);
             $text = 'Sorry, game not found in cache. Press <code>Riddle</code> button to start new game↘';
