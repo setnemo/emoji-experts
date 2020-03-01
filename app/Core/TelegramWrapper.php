@@ -55,7 +55,7 @@ class TelegramWrapper
 
         $this->bot->enableExternalMySql(App::get('db'));
         $this->bot->enableLimiter();
-        if ($cli) {
+        if ($cli === true) {
             $this->bot->handleGetUpdates();
         } else {
             $this->bot->handle();
@@ -72,7 +72,7 @@ class TelegramWrapper
     {
         $key = $prefix . '_registered';
         if (!$this->cache()->exists($key)) {
-            if (!$cli) {
+            if ($cli === false) {
                 try {
                     $hook_url = "https://" . $_SERVER["SERVER_NAME"] . $_SERVER["REQUEST_URI"];
                     $result = $this->bot->setWebhook($hook_url);
@@ -84,7 +84,10 @@ class TelegramWrapper
                 }
             } else {
                 $this->bot->deleteWebhook();
-                $this->cache()->del([$key]);
+                $del = $this->cache()->del([$key]);
+                $this->logger()->error('Registered failed', [
+                    'cli' => $cli, 'del' => $del,
+                'exist' => $this->cache()->exists($key)]);
             }
         }
     }

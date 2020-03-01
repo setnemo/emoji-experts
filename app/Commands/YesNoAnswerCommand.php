@@ -82,8 +82,7 @@ class YesNoAnswerCommand extends SystemCommand
 
             $errors = $this->cache()->get("game_yes_no_errors_{$userId}");
             if ($errors == 3) {
-                $this->cache()->del(["game_yes_no_errors_{$userId}"]);
-                $this->cache()->del(["game_yes_no_{$userId}"]);
+                $this->clearCache($userId);
                 $buttonsGame = ['Top results', 'Main', 'Riddle',];
                 $text = "⛔️GAME OVER⛔️\n⛔️SCORE: {$score}⛔️";
             } else {
@@ -103,6 +102,7 @@ class YesNoAnswerCommand extends SystemCommand
                 $buttonsGame
             );
         } else {
+            $this->clearCache($userId);
             $text = 'Sorry, game not found in cache. Press <code>Riddle</code> button to start new game↘';
             $keyboard = new Keyboard(['Top results', 'Main', 'Riddle']);
         }
@@ -115,5 +115,15 @@ class YesNoAnswerCommand extends SystemCommand
             'reply_markup' => $keyboard,
         ];
         return Request::sendMessage($data);
+    }
+
+    /**
+     * @param int $userId
+     * @throws \Exception
+     */
+    private function clearCache(int $userId): void
+    {
+        $this->cache()->del(["game_yes_no_errors_{$userId}"]);
+        $this->cache()->del(["game_yes_no_{$userId}"]);
     }
 }
