@@ -71,7 +71,8 @@ class TelegramWrapper
     private function register(string $prefix, bool $cli = false): void
     {
         $key = $prefix . '_registered';
-        if (!$this->cache()->exists($key)) {
+        $hookReg = getenv('HOOK_OFF') ?? $this->cache()->exists($key);
+        if (!$hookReg && !$cli) {
             if ($cli === false) {
                 try {
                     $hook_url = "https://" . $_SERVER["SERVER_NAME"] . $_SERVER["REQUEST_URI"];
@@ -82,12 +83,11 @@ class TelegramWrapper
                 } catch (TelegramException $e) {
                     $this->logger()->error('Registered failed', ['error' => $e->getMessage()]);
                 }
-            } else {
+            }
+        } elseif ($hookReg && $cli) {
+            if (!getenv('HOOK_OFF')) {
                 $this->bot->deleteWebhook();
-                $del = $this->cache()->del([$key]);
-                $this->logger()->error('Registered failed', [
-                    'cli' => $cli, 'del' => $del,
-                'exist' => $this->cache()->exists($key)]);
+                $this->cache()->del([$key]);
             }
         }
     }
