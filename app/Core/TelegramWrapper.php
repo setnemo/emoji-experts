@@ -59,11 +59,18 @@ class TelegramWrapper
     
     public function runBot(bool $cli = false): void
     {
-        if ($cli === true) {
-            $this->bot->handleGetUpdates();
-        } else {
-            $this->bot->handle();
+        try {
+            if ($cli === true) {
+                $this->bot->handleGetUpdates();
+            } else {
+                $this->bot->handle();
+            }
+        } catch (TelegramException $e) {
+            $this->logger()->error($e->getMessage(), $e->getTrace());
         }
+        
+        
+
     }
 
     /**
@@ -73,12 +80,12 @@ class TelegramWrapper
      */
     private function register(string $prefix, bool $cli = false): void
     {
-        $key = $prefix . '_registered';
+        $key = $prefix . '_new_registered';
         $hookReg = getenv('HOOK_OFF') ?? $this->cache()->exists($key);
         if (!$hookReg && !$cli) {
             if ($cli === false) {
                 try {
-                    $hook_url = "https://" . $_SERVER["SERVER_NAME"] . $_SERVER["REQUEST_URI"];
+                    $hook_url = "https://emoji.webhook.pp.ua";
                     $result = $this->bot->setWebhook($hook_url);
                     if ($result->isOk()) {
                         $this->cache()->set($key, $result->getDescription());

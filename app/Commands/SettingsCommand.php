@@ -58,7 +58,7 @@ class SettingsCommand extends UserCommand
      * @throws TelegramException
      * @throws ReflectionException
      */
-    public function execute()
+    public function execute(): ServerResponse
     {
         $message = $this->getMessage();
         $chat_id = $message->getChat()->getId();

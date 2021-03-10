@@ -1,10 +1,13 @@
-FROM php:7.4.3-alpine3.11
+FROM php:7.4.3-fpm-alpine3.11
+
+# Copy the php config file
+COPY ./docker/php/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
 
 # Copy the application code
 COPY . /app
 
 RUN apk update && apk add --no-cache \
-    build-base shadow vim curl supervisor \
+    build-base shadow vim curl \
     php7 \
     php7-fpm \
     php7-common \
@@ -42,21 +45,11 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Remove Cache
 RUN rm -rf /var/cache/apk/*
 
-# Add UID '1000' to www-data
-RUN usermod -u 1000 www-data
-
-# Copy existing application directory permissions
-COPY --chown=www-data:www-data . /app
-
-# setup supervisor
-ADD docker/supervisor/emoji.conf /etc/supervisor/conf.d/emoji.conf
-ADD docker/supervisor/supervisord.conf /etc/supervisord.conf
-
 VOLUME ["/app"]
 
 WORKDIR /app
 
 RUN composer install
 
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+EXPOSE 9000
 

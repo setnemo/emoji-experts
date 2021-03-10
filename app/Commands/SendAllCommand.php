@@ -9,14 +9,14 @@ use Longman\TelegramBot\Exception\TelegramException;
 use Longman\TelegramBot\Request;
 
 /**
- * Admin "/sendtoall" command
+ * Admin "/sendall" command
  */
-class SendtoallCommand extends AdminCommand
+class SendAllCommand extends AdminCommand
 {
     /**
      * @var string
      */
-    protected $name = 'sendtoall';
+    protected $name = 'sendall';
     /**
      * @var string
      */
@@ -24,7 +24,7 @@ class SendtoallCommand extends AdminCommand
     /**
      * @var string
      */
-    protected $usage = '/sendtoall <message to send>';
+    protected $usage = '/sendall <message to send>';
     /**
      * @var string
      */
@@ -40,7 +40,7 @@ class SendtoallCommand extends AdminCommand
      * @return ServerResponse
      * @throws TelegramException
      */
-    public function execute()
+    public function execute(): ServerResponse
     {
         $text = $this->getMessage()->getText(true);
         if ($text === '') {
@@ -55,6 +55,7 @@ class SendtoallCommand extends AdminCommand
                 'supergroups' => true,
                 'channels' => false,
                 'users' => true,
+                'language' => 'ru'
             ]
         );
         if (empty($results)) {

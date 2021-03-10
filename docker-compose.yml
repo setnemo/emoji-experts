@@ -1,16 +1,37 @@
 version: '3'
 
 services:
-  worker:
+  emoji-nginx:
     build:
       context: .
-      dockerfile: docker/worker/Dockerfile
-    container_name: 'emoji-bot-worker'
+      dockerfile: docker/nginx/Dockerfile
+    container_name: 'emoji-bot-nginx'
+    restart: always
+    ports:
+      - "7999:80"
+    volumes:
+      - .:/app/
+    networks:
+      - tier
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  emoji:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: 'emoji-bot-php'
     restart: always
     volumes:
       - .:/app/
     networks:
       - tier
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
   tier:
